@@ -1,0 +1,10 @@
+data/
+runs/
+__pycache__/
+*.pt
+*.onnx
+Add-Content .gitignore "venv/"
+Add-Content .gitignore "data_cifar/"
+Add-Content .gitignore "data_mine/"
+Add-Content .gitignore "cifar_raw/"
+Add-Content .gitignore "raw/"

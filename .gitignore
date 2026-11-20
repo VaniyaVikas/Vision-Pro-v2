@@ -1,0 +1,8 @@
+data/
+runs/
+__pycache__/
+*.pt
+*.onnx
+venv/
+data_cifar/
+cifar_raw/

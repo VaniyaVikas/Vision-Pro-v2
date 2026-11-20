@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vision Pro – see why the model decided</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='style.css') }}">
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Upload a photo. See what the model looked at.</h1>
+    <p>A calibrated PyTorch classifier tells you what it sees, how sure it really is, and where in the image it looked.</p>
+  </header>
+
+  <div class="status">
+    <span class="dot {{ '' if ready else 'off' }}"></span>
+    <span>{% if ready %}{{ info.name }} ready · {{ (info.acc * 100)|round(1) }}% validation accuracy · {{ info.dev }}
+    {% else %}No trained model found. Run <code>python train.py</code>, then restart the server.{% endif %}</span>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    <label class="drop">
+      <input type="file" name="file" accept="image/*" required {{ '' if ready else 'disabled' }}>
+      <span class="empty"><strong>Choose an image</strong>Drop a JPG, PNG or WebP here (max 8 MB)</span>
+      <span class="ready"><strong>Image selected</strong>Press “Analyze image” to continue</span>
+    </label>
+    <div class="opts">
+      <label class="check"><input type="checkbox" name="explain" value="true" checked> Show where the model looked</label>
+      <button type="submit" {{ '' if ready else 'disabled' }}>Analyze image</button>
+    </div>
+  </form>
+
+  {% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+
+  {% if r %}
+  <section class="result" aria-live="polite">
+    <div class="verdict">
+      <h2>{{ r.label }}</h2>
+      <span>{{ r.confidence }}% confident</span>
+      <span class="flag {{ 'warn' if r.uncertain else '' }}">{{ 'Low certainty – treat with care' if r.uncertain else 'Confident prediction' }}</span>
+      <span>{{ r.latency_ms }} ms · batch of {{ r.batch_size }}</span>
+    </div>
+    <figure><img src="{{ r.image }}" alt="Your image as the model saw it"><figcaption>Your image, as the model saw it</figcaption></figure>
+    {% if r.heatmap %}
+    <figure><img src="{{ r.heatmap }}" alt="Heat map of regions the model used"><figcaption>Red marks the areas that pushed the model toward “{{ r.label }}”.</figcaption></figure>
+    {% endif %}
+    <ul class="bars">
+      {% for t in r.top %}
+      <li><span>{{ t.label }}</span><span class="bar"><i style="--p:{{ t.p }}%"></i></span><b>{{ t.p }}%</b></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+  <p class="meta">Confidences are temperature-calibrated on held-out data. Live stats: <a href="/metrics">/metrics</a> · API docs: <a href="/docs">/docs</a></p>
+</main>
+</body>
+</html>
